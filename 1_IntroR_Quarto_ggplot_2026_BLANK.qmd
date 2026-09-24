@@ -8,7 +8,7 @@ editor: visual
 
 # Introduction to R, Quarto, and GGplot
 
-THIS TUTORIAL COMPLETED BY: (your name here)
+THIS TUTORIAL COMPLETED BY: Jessica Woody
 
 **MCRS Quantitative Methods Fall 2026**
 
