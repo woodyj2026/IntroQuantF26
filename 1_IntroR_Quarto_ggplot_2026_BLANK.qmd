@@ -136,14 +136,14 @@ What it looks like when you put those things together:
 
 ```{r}
 #this chunk of code will not run, don't worry if it throws an error
-ggplot(<dataset>) + 
-  aes(
-    x = <variable you want on the x-axis from dataset>, 
-    y = <ditto for y>
-      ) + 
-  geom_<typeofplot>(
-    <modifying arguments of that plot>
-      )
+#ggplot(<dataset>) + 
+ # aes(
+  #  x = <variable you want on the x-axis from dataset>, 
+   # y = <ditto for y>
+    #  ) + 
+  #geom_<typeofplot>(
+   # <modifying arguments of that plot>
+   #   )
 ```
 
 Let's do it step by step:
@@ -231,19 +231,19 @@ More detail here, to not worry about yet. https://ggplot2.tidyverse.org/referenc
 
 ### Tests:
 
-1.   Are fruity candies cheaper?
+Are fruity candies cheaper?
 
-- Can you make a boxplot that shows the price percent depending on fruity?
+1.  Can you make a boxplot that shows the price percent depending on fruity?
 
-  ```{r}
-  fruitprice<-ggplot(candy_rankings)+
-    aes(x=fruity, y=pricepercent)+
-    geom_boxplot()
+    ```{r}
+    fruitprice<-ggplot(candy_rankings)+
+      aes(x=fruity, y=pricepercent)+
+      geom_boxplot()
 
-  fruitprice
-  ```
+    fruitprice
+    ```
 
-2.  Are sweeter candies more expensive? Do the candies with higher sugarpercent have higher winpercent? Plot this relationship.
+    Are sweeter candies more expensive? Do the candies with higher sugarpercent have higher winpercent? Plot this relationship.
 
 ## PRETTY TIME!
 
@@ -254,22 +254,25 @@ Reference: bit.ly/colors-r
 You can change the color in the geom argument. Test out how it works on different geoms!
 
 ```{r}
-ggplot() +  
-  aes(x = ) + 
-  geom_bar(color = '', fill = ) 
+ggplot(candy_rankings) +  
+  aes(x = chocolate) + 
+  geom_bar(color = 'dodgerblue', fill = "tomato1") 
 ```
 
 If you want the color to reflect another variable, for example, if there is fruit in the candy too, then you make it a **mapped aesthetic**, or one that refers to some data to assign a visual. In this case, you place the **color** or **fill** argument **inside aes().**
 
 ```{r}
-ggplot() +  
-  aes(x = , fill = ) + 
-  geom_bar(position = ) 
+ggplot(candy_rankings) +  
+  aes(x = chocolate, fill = fruity) + 
+  geom_bar(position = position_dodge()) 
 ```
 
 ### Challenge question: what proportion of candies have BOTH chocolate and caramel?
 
 ```{r}
+ggplot(candy_rankings) +
+  aes(x = chocolate, fill = caramel) +
+  geom_bar(position = position_dodge())
 
 ```
 
@@ -278,17 +281,18 @@ ggplot() +
 Working on a scatterplot and want the points to be different shapes? Easy too!
 
 ```{r}
-ggplot() +
-  aes(x = ,
-      y = ) +
-  geom_point()
+ggplot(candy_rankings) +
+  aes(x = pricepercent,
+      y = winpercent) +
+  geom_point(shape = 2)
 ```
 
 Similarly, you can **map** shape to a variable in the aes() function.
 
 ```{r}
-ggplot() +
-  aes() +
+ggplot(candy_rankings) +
+  aes(x = pricepercent, y = winpercent, shape = chocolate) +
+  geom_point()
   
 ```
 
@@ -297,13 +301,16 @@ ggplot() +
 Pretty self-explanatory here. labs() are added separately from the other plot parameters.
 
 ```{r}
-ggplot() +
-  aes(
-  labs(x = 
-       y =
-       title = ,
-       subtitle = 
-       caption =
+ggplot(candy_rankings) +
+  aes(x = sugarpercent,
+      y = winpercent) + 
+      geom_point() +
+  labs(x = "Sugar Percent",
+       y = "Win Percentage",
+       title = "Relationship between the dependent and independent variable",
+       subtitle = "for Halloween candies",
+       caption = "Based on an online survey by FiveThirtyEight")
+
 
 ```
 
@@ -392,21 +399,20 @@ ggplot() +
 Multiple plots in multiple panes - what happens when you move the . and \~ next to chocolate, like in the commented out line?
 
 ```{r}
-ggplot() +
-  aes(x = , 
-      y = ) +
-  facet_grid()
+ggplot(candy_rankings) +
+  aes(x = sugarpercent, 
+      y = winpercent) +
+  geom_point() +
+  facet_grid(chocolate~.)
   #facet_grid(chocolate~.)
 ```
 
 ### Complex Examples
 
 ```{r}
-load(file = )
+load(file = "Demo Data Files/df5.Rdata")
+view(df5)
 
-VisitorGraph <- ggplot() 
-
-VisitorGraph
 ```
 
 So that's kind of cool for a first shot, but it is definitely not a finalized graph. Let's start adding levels, and changing the line type, so we can get a graph that's a little nicer.
@@ -477,7 +483,8 @@ Q1: Make a line graph that depicts the number of visitors per year for only Yose
 Q2: Make a boxplot that compares visitation rates in all parks in 1980 to present.
 
 ```{r}
-
+visrates <- ggplot(df5) +
+  aes(x = Code, y = kVis) + 
 ```
 
 Q3: Make a plot using the data of your choosing to show something interesting about either the candy_rankings data or the np_visits data.
