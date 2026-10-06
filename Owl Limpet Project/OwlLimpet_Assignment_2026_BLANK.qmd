@@ -43,6 +43,8 @@ Make a histogram with all the data.
 
 ```{r}
 ggplot(SizeData_2022_2025) +
+  aes(x = shell_length_mm) + 
+  geom_histogram()
 
 ```
 
@@ -50,6 +52,10 @@ Make a histogram with a `facet_wrap()` to separate the data from each site and y
 
 ```{r}
 ggplot(SizeData_2022_2025) +
+  aes(x = shell_length_mm) + 
+  geom_histogram() +
+  facet_wrap(site~year) 
+  
 
 ```
 
@@ -57,6 +63,9 @@ We know our minimum size cut-off varied in different years of the surveys, and s
 
 ```{r}
 SizeData_2022_2025 <- SizeData_2022_2025 |> 
+  filter(shell_length_mm >= 15)
+
+SizeData_2022_2025
 ```
 
 ### 1.2 How long were the transects at each site?
@@ -65,11 +74,19 @@ Make a table using `select()` and `distinct()` to only show the length of each t
 
 ```{r}
 TransectLengths <- SizeData_2022_2025 |> 
+  select(year, site, transect_num, transect_length_m) |> 
+  distinct()
+
+TransectLengths
+
+
+
+ 
   
   
   
 
-TransectLengths
+
 ```
 
 Visualize the transect lengths two different ways.
@@ -81,14 +98,21 @@ Visualize the transect lengths two different ways.
 - combine the two so that the points are red and overlay the boxplot graph.
 
 ```{r}
-TransectLengths |> ggplot() +
+TransectLengths |> ggplot() + 
+  aes(x = site, y = transect_length_m) +
+  geom_boxplot()
 
   
 
 TransectLengths |> ggplot() +
+  aes(x = site, y = transect_length_m) +
+  geom_point()
 
 
 TransectLengths |> ggplot() +
+  aes(x = site, y = transect_length_m) +
+  geom_boxplot() +
+  geom_point(color = "firebrick")
 
   
   
@@ -98,20 +122,29 @@ THINKING QUESTIONS: Do we have the number of transects that we expect to in our 
 
 ANSWER: Our methods have been a little inconsistent. We used different methods at Shaws Cove and Heisler than we did at Treasure Cove. At Treasure Cove, we have used 5 meter long set length transects. At Shaws Cove and Heisler, we ran transects of variable length from the high tide line to the lowest accessible part of the intertidal. At both sites limpets were measured one meter from the tape on either side. In order to compare population density, we will need to eventually divide by transect length/area to get limpets per square meter.
 
-#### 1.3 Make two more graphs of your choosing to explore the data based on some other columns. Write a sentence under each that explains what your graph shows. 
+#### 1.3 Make two more graphs of your choosing to explore the data based on some other columns. Write a sentence under each that explains what your graph shows.
 
 Graph 1:
 
 ```{r}
+SizeData_2022_2025_point <- ggplot(SizeData_2022_2025) +
+  aes(x = site, y = shell_length_mm, color = habitat) +
+  geom_point()
 
+SizeData_2022_2025_point
 ```
 
-This shows:
+This shows: How shell length is distributed across all sites, and what habitat they were found in. This could show the relationship between shell length and habitat across all sites.
 
 Graph 2:
 
 ```{r}
+SizeData_2022_2025_hist <- ggplot(SizeData_2022_2025) +
+  aes(x = shell_length_mm) +
+  geom_histogram() +
+  facet_wrap(~habitat)
 
+SizeData_2022_2025_hist
 ```
 
 This shows:
@@ -223,7 +256,7 @@ T-Test assumptions (for a Student's T-test)
 
 - Is the distribution of the model residuals approximately normal?
 
-#### 2.5 What is the sample size (of transects) for each site/year for our study of limpet population density? 
+#### 2.5 What is the sample size (of transects) for each site/year for our study of limpet population density?
 
 Is it roughly the same so that we can compare? Is it enough to run a statistical test?
 
@@ -231,7 +264,7 @@ Is it roughly the same so that we can compare? Is it enough to run a statistical
 Limpet_Density |> 
 ```
 
-#### 2.6. Does average number of owl limpets per square meter differ significantly between Heisler Park and Shaws Cove? 
+#### 2.6. Does average number of owl limpets per square meter differ significantly between Heisler Park and Shaws Cove?
 
 Filter the data to only include those sites before putting it into the `t.test()` function. These are a good comparison because they were measured in the same year with the same survey methods.
 
@@ -256,7 +289,7 @@ t.test(    )
 
 Since there was no difference in means, we'll ignore year at Treasure Cove from now on and just pool our data to make it easier for ourselves.
 
-#### 2.8 EXTRA CREDIT:  Do an ANOVA comparing Shaws, Heisler, and Treasure Cove 2025 density data (exclude 2023 so that the sample size is similar between all three). Use a Tukey post-hoc test. Explain the results. 
+#### 2.8 EXTRA CREDIT: Do an ANOVA comparing Shaws, Heisler, and Treasure Cove 2025 density data (exclude 2023 so that the sample size is similar between all three). Use a Tukey post-hoc test. Explain the results.
 
 ```{r}
 
@@ -363,7 +396,7 @@ If you would like to test whether size differs by predicted human impact, at CDM
 
 ```
 
-#### 3.6. MORE EXTRA CREDIT: conduct an ANOVA to test for differences in shell length between all four sites. Show your tests for all assumptions and make a graph. 
+#### 3.6. MORE EXTRA CREDIT: conduct an ANOVA to test for differences in shell length between all four sites. Show your tests for all assumptions and make a graph.
 
 ```{r}
 
