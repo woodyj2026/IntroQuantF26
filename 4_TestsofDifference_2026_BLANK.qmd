@@ -11,13 +11,13 @@ editor: visual
 This tutorial will walk you through how to conduct various simple one- and two-sample tests in R, as well as a simple ANOVA, using examples.
 
 ```{r}
-install.packages()
+install.packages("Hmisc")
 
 library(tidyverse)
 ```
 
 ```{r}
-load()
+load(file = "Demo Data Files/S4E2e.RData")
 ```
 
 # Binomial Test
@@ -34,18 +34,18 @@ Toads: 14 right-handed toads out of 18 toads - is that different from our null o
 # n is the sample size
 # p is the proportion predicted under the null hypothesis
 
-binom.test(x = , n = , p = )
+binom.test(x = 14, n = 18, p = 0.5)
 
-binom.test( 
-           alternative = , 
-           conf.level = )
+binom.test( x = 14, n = 18, p = 0.5, 
+           alternative = "less", 
+           conf.level = 0.95)
 ```
 
 If we want to visualize a binomial plot for this, we can do that too!
 
 ```{r}
-success <- 
-plot(, dbinom(),)
+success <- c(0:18)
+plot(success, dbinom(success, size = 18, prob = 0.5), type = 'h')
 ```
 
 # T-tests and other tests of difference
@@ -57,15 +57,15 @@ Say you are a scientist interested in the extinct pygmy mammoths of the Channel 
 ```{r one-sample}
 ?t.test
 
-mammoths <- 
+mammoths <- c(0.68, 1.60, 1.90, 1.01, 1.47, 1.55, 1.07, 1.34, 1.98, 1.59)
 
-t.test()
+t.test(mammoths, mu = 4.0)
 
 # if mammoths is part of a data frame, you can select just the column using the $ operator
 
-mammoth_data <- tibble()
+mammoth_data <- tibble(ID = seq(1:10), mammoths)
 
-t.test()
+t.test(mammoth_data$mammoths, mu = 4.0)
 
 ```
 
@@ -74,26 +74,29 @@ Are the pygmy mammoths really substantially smaller?
 Assign your output to an object called "mammoth_test", and look at your results using the summary() and str() functions. What do they show you?
 
 ```{r one-sample-results}
-mammoth_test <- t.test()
+mammoth_test <- t.test(mammoth_data$mammoths, mu = 4.0)
 
-summary()
-str() # str is structure
+summary(mammoth_test)
+str(mammoth_test) # str is structure
 ```
 
 ```{r p-value-solution}
-
+mammoth_test$p.value
 ```
 
 Visualize:
 
 ```{r}
-mammoths |>  |>
-  ggplot() + 
- + 
-  xlim() +  
-    linetype = ) + 
-  + 
-  labs(x = ) 
+mammoths |> as_tibble() |>
+  ggplot(aes(x = value)) + 
+ geom_boxplot() +
+  theme_classic() +
+  xlim(0, 4.5) + 
+  geom_vline(
+    aes(xintercept = 4.0),
+    linetype = "dotted") + 
+  coord_flip() + 
+  labs(x = "Mammoth height at shoulder (m)") 
 
 ```
 
@@ -110,8 +113,8 @@ Ridge and furrow topography was a result of ploughing with non-reversible plough
 To test whether this ancient remnant of farming practices continues to influence biodiversity today, researchers collected data on the abundance of meadow buttercup plants in 1-m\^2 quadrats on the tops of ridges and in the bottom of furrows. The different ways that data can be formatted is shown below. Take a look at the object "rf1"
 
 ```{r two-sample}
-glimpse()
-
+glimpse(rf1)
+rf1
 ```
 
 Use a two-sample t-test to see if the ridges differ in buttercup abundance from the furrows, using ridge and furrow objects. Use the helper to examine how the function works.
@@ -123,14 +126,14 @@ Use a two-sample t-test to see if the ridges differ in buttercup abundance from 
 The formula is specified as `response ~ predictor`. This is a common format for specifying our model.
 
 ```{r two-sample-rf1}
-t.test(, data = )
+t.test(count ~ area, data = rf1)
 ```
 
 You've likely noticed that your output is from a Welch's t-test, which R runs by default instead of a Student's t-test. Welch's t-test is a modification of the Student's t-test which reduces the p-value slightly and makes the test a little more conservative. R can also run a Student's t-test, you just have to add the argument "var.equal = TRUE". Run the following two lines and compare the output.
 
 ```{r two-sample-compare}
-t.test() 
-t.test() 
+t.test(count ~ area, data = rf1, var.equal = FALSE) 
+t.test(count ~ area, data = rf1, var.equal = TRUE) 
 ```
 
 ## Paired two-sample T-test
@@ -138,29 +141,29 @@ t.test()
 Say you have a pond with a limited number of turtles, and you are interested in whether their weight changed after a substantial drought, which could be important for assessing fitness and reproductive ability. To do so, you've recaptured the same turtles before and after the drought. Since you are measuring the same turtles in each sample, you need to conduct a <b> paired </b> t-test.
 
 ```{r print-limit}
-Before <- 
-After <-
-TurtleID <- c()
+Before <- c(12.9, 13.5, 12.8, 15.6, 17.2, 19.2, 12.6, 15.3, 14.4, 11.3)
+After <- c(12.7, 13.6, 12.0, 15.2, 16.4, 19.0, 11.9, 14.3, 13.5, 10.5)
+TurtleID <- c(seq(1:10))
 
 
 # how can we put this into a tidy dataframe? 
 turtles <- 
-  tibble() |> 
+  tibble(TurtleID, Before, After) |> 
   pivot_longer(
-    cols =, 
-    names_to = , 
-    values_to = )
+    cols = 2:3, 
+    names_to = "When", 
+    values_to = "Mass")
 
-rm() # this line deletes those objects so we don't get confused later, ignore for now
+rm(Before, After, TurtleID) # this line deletes those objects so we don't get confused later, ignore for now
 
-
+turtles
 
 ```
 
 As always, we want to visualize our data first.
 
 ```{r}
-ggplot() + aes(x = , y = ) + 
+ggplot(turtles) + aes(x = When, y = Mass) + geom_boxplot()
 
 ```
 
@@ -169,7 +172,7 @@ Hmm. Not very different, but this first pass doesn't take into account that our 
 The data frame we just made is perfectly tidy and ready for us to do a normal t-test, that ISN'T paired:
 
 ```{r}
-t.test( ~ , data = )
+t.test(Mass ~ When, data = turtles) ##WRONG###
 ```
 
 But doing it this way is incorrect, because our data was paired! The Before and After measurements were done on the same turtles, twice, so there is structure in our data we need to account for.
@@ -179,17 +182,19 @@ For the paired t-test function to work, we actually need our data to be a little
 Let's practice pivoting our data back again:
 
 ```{r print-limit-hint}
-turtles_wide <-  |>  
+turtles_wide <- turtles |>  
   pivot_wider(
-    )
+    names_from = When,
+    values_from = Mass)
 
-
+turtles_wide
 ```
 
 The vectors we will use are the two columns *Before* and *After*, which we know are both arranged in order by ID. We put them into the function separated by a comma, then add our argument to compute it as a paired t-test.
 
 ```{r}
-t.test()
+t.test(turtles_wide$Before, turtles_wide$After,
+       Paired = TRUE)
 ```
 
 It was really important that we paired them! The result is now significant.
@@ -197,18 +202,23 @@ It was really important that we paired them! The result is now significant.
 This version illustrates how a single turtle changed from Before to After, as the two observations for each turtle are connected by a line. You can tell that the general trend is downward, even though there was a lot of variability between turtles.
 
 ```{r}
-turtles <-  |> 
-  mutate(When = , levels = c) 
+turtles <- turtles |> 
+  mutate(When = factor(When, levels = c("Before", "After"))) 
 
-turtles |>  + aes() + 
+turtles |> ggplot() + aes(x = When, y = Mass, group = TurtleID) + 
+  geom_point() +
+  geom_line()
 ```
 
 In this one, we calculated the difference in Mass from Before to After. If that difference is statistically different from zero (sortof like a one-sample t-test...), then we have evidence there was a change. This graph shows the difference and then we added a dashed line to illustrate our comparison, and suddenly it makes sense why our test was statistically significant.
 
 ```{r}
-turtles_change <-  |> 
-  mutate()
-ggplot() + aes(y = )
+turtles_change <- turtles_wide |> 
+  mutate(Change = After - Before)
+ggplot(turtles_change) + aes(y = Change) +
+  geom_boxplot() +
+  geom_hline(aes(yintercept = 0), linetype = "dashed", color = "orchid1") +
+  theme_classic()
 ```
 
 It's not too often, but occasionally you will be interested in only one tail of the distribution, and your null and alternative hypotheses will be formatted as:
@@ -222,16 +232,17 @@ To use one-tailed tests, you must have a really good reason why you don't think 
 Try running a t-test and comparing outcomes with different alternative hypotheses.
 
 ```{r one-tailed-test-hint}
-t.test(, 
-       paired = , 
-       alternative = )
+t.test(turtles_wide$After, turtles_wide$Before, 
+       paired = TRUE, 
+       alternative = "less")
 ```
 
 Visualize...
 
 ```{r}
 turtles |> 
-  ggplot()
+  ggplot(aes(x = When, y = Mass)) +
+  geom_boxplot()
 
 ```
 
@@ -240,7 +251,7 @@ turtles |>
 Data is not always normally distributed, however, and if your data is egregiously non-parametric, it can be better to use a non-parametric test. The non-parametric equivalent of the one-sample t-test is the Wilcoxon test, also know as a Mann-Whitney U-test. Look at the Help menu for the wilcox.test() function.
 
 ```{r wilcox-help}
-?
+?wilcox.test
 ```
 
 Take a look at the datasets *flour1*, *flour2*, *Woad.fm* and *Glebe.fm*, which all contain the same data. The researchers took a ten samples of flour at two farms, Woad Farm and Glebe Farm, and counted the number of flour beetles in each sample. Which dataset is in "tidy" format, i.e., rows contain observations, columns contain variables?
@@ -249,17 +260,17 @@ Take a look at the datasets *flour1*, *flour2*, *Woad.fm* and *Glebe.fm*, which 
 flour1
 flour2
 
-ggplot() + aes() +  + facet_wrap()
+ggplot(flour1) + aes(x = qty) + geom_histogram() + facet_wrap(site~.)
 
-Woad.fm <- 
-Glebe.fm <- 
+Woad.fm <- flour1 |> filter(site == "Woad Fm")
+Glebe.fm <- flour1 |> filter(site == "Glebe Fm")
 
 ```
 
 Test whether the median number of flour beetles at Woad Farm differs from 3.5.
 
 ```{r wilcox-one-sample-solution}
-wilcox.test()
+wilcox.test(Woad.Fm, mu = 3.5)
 ```
 
 Now try a Wilcoxon signed-rank test (two-sample) on Woad vs. Glebe Farm, using the dataframe you identified as the one in "tidy formatting". Note: you will likely get an error message that says that it "cannot compute exact p-value with ties". Ties are when multiple observations share the same value.
@@ -267,13 +278,13 @@ Now try a Wilcoxon signed-rank test (two-sample) on Woad vs. Glebe Farm, using t
 By default (if exact is not specified), an exact p-value is computed if the samples contain less than 50 finite values and there are no ties. Otherwise, a normal approximation is used. You can get rid of this error message by adding the argument "exact = FALSE".
 
 ```{r wilcox-two-sample-solution}
-wilcox.test()
+wilcox.test(qty ~ site, data = flour1, exact = FALSE)
 ```
 
 Paired, demonstrated with our turtle data from earlier:
 
 ```{r}
-wilcox.test()
+wilcox.test(turtles_wide$Before, turtles_wide$After, paired = TRUE)
 
 ```
 
@@ -296,7 +307,7 @@ We will follow the following steps to conduct our test:
 Today we are examining a data set of plant heights (specifically grasses) collected at three sites on a hillside - Upper, Middle and Lower. We are interested in if location on the hillside influences plant height.
 
 ```{r}
-
+sward2
 ```
 
 ### Step 2: Write a formula for the test
