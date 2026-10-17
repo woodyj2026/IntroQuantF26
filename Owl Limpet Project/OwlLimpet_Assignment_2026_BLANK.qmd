@@ -361,7 +361,18 @@ Since there was no difference in means, we'll ignore year at Treasure Cove from 
 ```{r summary statistics }
 # generate a nice table (like you did for counts, using kable() and round digits) with the mean shell length, standard deviation, and sample size of each site. Ignore transect. 
 
-SizeData_2022_2025 |> 
+SizeData_2022_2025
+
+Shell_summary <- SizeData_2022_2025 |> 
+  group_by(site, year) |> 
+  summarize(mean_shell = mean(shell_length_mm, na.rm = TRUE), # mean 
+            sd_shell = sd(shell_length_mm, na.rm = TRUE),  # standard deviation
+            n = n()) |>   # count
+  mutate_at(vars(mean_shell, sd_shell), # bonus line to reduce digits
+            .funs = round, 2) 
+
+Shell_summary |>  
+  knitr::kable()
 
   
 ```
@@ -369,7 +380,9 @@ SizeData_2022_2025 |>
 ##### 3.1.2 Graph the shell lengths at each site using a boxplot. What do you observe?
 
 ```{r}
-ggplot(SizeData_2022_2025) +
+ggplot(SizeData_2022_2025) + 
+  aes(x = site, y = shell_length_mm, fill = year) +
+  geom_boxplot()
 
   
   
@@ -394,16 +407,17 @@ T-Test assumptions (for a Student's T-test)
 
 # create the appropriate filter to include only Treasure Cove and CDM data
 CDM_TC_Sizes <- SizeData_2022_2025 |> 
-
+  filter(year != "2024")
   
 # set the linear model for testing the assumptions
-model <- lm(   )
+model <- lm(shell_length_mm ~ site, data = CDM_TC_Sizes)
+model
 
 # Examine plot of Residuals vs. Fitted values
 plot(model, which = 1)
 
 # F-test for homogeneity of variance - if p-value < 0.05 then variances are different. 
-var.test(     )
+var.test()
 
 # NOTE: if your sample fails this test, have no fear! Welch's t-test (the default that R uses) is okay to use with unequal variances. 
 
