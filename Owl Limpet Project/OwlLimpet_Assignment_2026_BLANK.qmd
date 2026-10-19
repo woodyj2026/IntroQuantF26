@@ -408,6 +408,7 @@ T-Test assumptions (for a Student's T-test)
 # create the appropriate filter to include only Treasure Cove and CDM data
 CDM_TC_Sizes <- SizeData_2022_2025 |> 
   filter(year != "2024")
+CDM_TC_Sizes
   
 # set the linear model for testing the assumptions
 model <- lm(shell_length_mm ~ site, data = CDM_TC_Sizes)
@@ -417,7 +418,7 @@ model
 plot(model, which = 1)
 
 # F-test for homogeneity of variance - if p-value < 0.05 then variances are different. 
-var.test()
+var.test(shell_length_mm ~ site, data = CDM_TC_Sizes)
 
 # NOTE: if your sample fails this test, have no fear! Welch's t-test (the default that R uses) is okay to use with unequal variances. 
 
@@ -441,7 +442,7 @@ Why will we not pay attention to this Shapiro-Wilk test result? Because the samp
 
 ```{r t-test or Wilcox}
 # calculate the t-test results
-t.test(      )
+t.test(shell_length_mm ~ site, data = CDM_TC_Sizes, var.equal = FALSE)
 ```
 
 #### [3.3 Graph your results using a column plot with error bars for standard error]{.underline}
@@ -449,14 +450,31 @@ t.test(      )
 For full credit, have well centered error bars and professionally labeled axes (they should not say "mean", they should say the variable name).
 
 ```{r}
-CDM_TC_Sizes |>
-  
+summarize_CDM_TC <- CDM_TC_Sizes |> 
+  group_by(site) |> 
+  summarize(mean_shell = mean(shell_length_mm, na.rm = TRUE),
+            sd_shell = sd(shell_length_mm, na.rm = TRUE),
+            n = n(),
+            se_shell = sd_shell/sqrt(n)) 
+
+summarize_CDM_TC |>  
+  knitr::kable()
+
+summarize_CDM_TC |> 
+  ggplot() +
+  aes(x = site, y = mean_shell) +
+  geom_col() + 
+  geom_errorbar(aes(ymin = mean_shell - se_shell,
+                ymax = mean_shell + se_shell)) +
+  labs(x = "Site", y = "Shell length (mm)") 
 
 ```
 
 #### [3.4 - Interpret and explain the results of your test]{.underline}
 
 Are we pretty confident that these samples were drawn from different populations? Why is the standard error so small?
+
+We are confident that these samples were drawn from different populations because there is no overlap in errorbars and the result of our t-test shows that there is a significant difference in the mean shell length between limpets found at Corona del Mar and Treasure Cove (p-value \< 0.05).
 
 #### 3.5 - EXTRA CREDIT: repeat this analysis to see if the same result holds for the comparison at Heisler Park (high impact site) vs. Shaws Cove (low impact site).
 
