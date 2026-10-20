@@ -289,21 +289,25 @@ Limpet_Density |>
 
 Which plot do you find the most informative and useful and why?
 
+I find the column plot the most useful because I can quickly read the mean at each site and it has errorbars which tells me if the means of each site are statistically significant from one another.
+
 Based on these plots, does your data meet assumptions for a t-test?
 
 T-Test assumptions (for a Student's T-test)
 
--   Are the data continuous (i.e., not categorical/discrete)?
+-   Are the data continuous (i.e., not categorical/discrete)? Yes it is continuous.
 
--   Have the sample data been randomly sampled from a population?
+-   Have the sample data been randomly sampled from a population? Yes it is random.
 
--   Is there homogeneity of variance (i.e., the variability of the data in each group is similar)?
+-   Is there homogeneity of variance (i.e., the variability of the data in each group is similar)? There is homogeneity of variance.
 
--   Is the distribution of the model residuals approximately normal?
+-   Is the distribution of the model residuals approximately normal? Yes, the distribution is approximately normal.
 
 #### 2.5 What is the sample size (of transects) for each site/year for our study of limpet population density?
 
 Is it roughly the same so that we can compare? Is it enough to run a statistical test?
+
+Yes, it is similar enough where you can run a statistical test.
 
 ```{r}
 Limpet_Density |> 
@@ -474,7 +478,7 @@ summarize_CDM_TC |>
 
 Are we pretty confident that these samples were drawn from different populations? Why is the standard error so small?
 
-We are confident that these samples were drawn from different populations because there is no overlap in errorbars and the result of our t-test shows that there is a significant difference in the mean shell length between limpets found at Corona del Mar and Treasure Cove (p-value \< 0.05).
+We are confident that these samples were drawn from different populations because there is no overlap in errorbars and the result of our t-test shows that there is a significant difference in the mean shell length between limpets found at Corona del Mar and Treasure Cove (p-value \< 0.05). The standard error is so small because the data has low variability and the data is precise.
 
 #### 3.5 - EXTRA CREDIT: repeat this analysis to see if the same result holds for the comparison at Heisler Park (high impact site) vs. Shaws Cove (low impact site).
 
@@ -500,6 +504,12 @@ Clean up and combine the 2023, 2024 and 2025 data for Territories:
 load(file = "Data/All_Territories.Rdata")
 
 load(file = "Data/FenbergTerr.Rdata")
+
+All_Territories
+
+All_Territories |> 
+  relocate(site, year, .before = location) |> 
+  relocate(year, .before = site) 
 ```
 
 #### 4.2 How many limpet territories did we measure?
@@ -507,6 +517,10 @@ load(file = "Data/FenbergTerr.Rdata")
 ```{r}
 ## How many territories were measured at each site in each year? 
 All_Territories |> 
+  select(site, year) |> 
+  group_by(year, site) |> 
+  mutate(count = n()) |> 
+  distinct()
 ```
 
 #### 4.3 Calculate meaningful variables from our measured values
@@ -519,9 +533,12 @@ Create new columns for:
 
 ```{r}
 All_Territories_area_mass <- All_Territories |> 
+  select(site, year, habitat, size_mm, numbsquares) |> 
+  mutate(area_mm2 = numbsquares * 361) |> 
+  mutate(mass_g = 0.00009*size_mm ^ 3.0471)
   # create a new column for territory area in mm^2 using the "numbsquares" column
          # mesh = 19 mm x 19 mm 
-
+All_Territories_area_mass
 
   # create a new column for limpet body mass
   # formula: mass_g = 0.00009*length ^ 3.0471
@@ -536,6 +553,10 @@ Explore the relationship between mass_g, and area_mm2 using scatter plots.
 # plot size_mm vs area_mm2 scatterplot with best fit regression line, no SE zone, not separated by site
 All_Territories_area_mass |> 
   ggplot() + 
+  aes(x = size_mm, y = area_mm2) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Shell Size (mm)", y = "Territory Area (mm2)")
   
 ```
 
@@ -543,6 +564,10 @@ All_Territories_area_mass |>
 ## Scatter plot with site mapped to color
 All_Territories_area_mass |>
   ggplot() + 
+  aes(x = size_mm, y = area_mm2) +
+  geom_point(aes(color = site)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Shell Size (mm)", y = "Territory Area (mm2)")
  
 ```
 
@@ -550,10 +575,16 @@ All_Territories_area_mass |>
 #  mass_g vs. area_mm2 scatterplot with best fit regression line, no SE zone, faceted by habitat
 All_Territories_area_mass |>
   ggplot() + 
-  
+  aes(x = mass_g, y = area_mm2) +
+  geom_point(aes(color = site)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Limpet Mass (g)", y = "Territory Area (mm2)") +
+  facet_wrap(~habitat)
 ```
 
 #### 4.5 What observations do you make about these plots? What do you find interesting about them? Explain one observation and make one more plot of your choosing to explore something you found interesting.
+
+The main observation I made about these plots is that they all show a positive correlation between limpet size, mass and length, and territory size. This shows that territory size is dependent on limpet size. The limpets at Treasure Cove are significantly larger than the limpets at other sites, and this could be explained by the fact that Treasure Cove is the only undisturbed site.
 
 ```{r}
 
