@@ -26,13 +26,13 @@ Today we will play with a few datasets that fit these criteria.
 ### Load Data
 
 ```{r}
-load()
+load("Demo Data Files/S4E2e.RData")
 ```
 
 ### Load packages
 
 ```{r}
-library()
+library(tidyverse)
 ```
 
 ## Correlation
@@ -52,8 +52,8 @@ We think there might be a relationship here!
 Let's make a scatter plot to explore this data and see if we think there might be a relationship.
 
 ```{r}
-ggplot() + 
-  aes() +
+ggplot(mayfly) + 
+  aes(x = Speed, y = Abund) +
   geom_point()
 ```
 
@@ -72,7 +72,8 @@ The assumptions of correlation are:
 ##### Are one or both of your variables **normal**? (this is a very small sample size, so we will assume its good enough, but normally you could check with a histogram)
 
 ```{r}
-hist()
+hist(mayfly$Abund)
+hist(mayfly$Speed)
 
 ```
 
@@ -81,8 +82,8 @@ hist()
 **Homoscedasticity** - Run the next chunk, then click the first plot, labeled "Residuals vs Fitted". That first plot plots the residuals (the differences between the individual points and the predicted relationship) against the fitted values (the values they would be in a perfect line). The deviation from the dashed line at zero is the residual (the difference between the observed datapoint and the fitted line).
 
 ```{r}
-mayfly.lm <- lm()
-plot()
+mayfly.lm <- lm(Abund ~ Speed, data = mayfly)
+plot(mayfly.lm, which = 1)
 
 
 ```
@@ -92,21 +93,22 @@ Is the variability the same on the left and right sides? It's a little hard to t
 Run this next chunk, but don't worry about looking at it - it randomly generates a fake data set that will demonstrate a heteroscedastic distribution of residuals, and then plot the graph.
 
 ```{r}
-n=
-a=
-b = 
-sigma2 = 
-eps = rnorm()
-y=
-mod <- 
+n=rep(1:100,2)
+a=0
+b = 1
+sigma2 = n^1.3
+eps = rnorm(n,mean=0,sd=sqrt(sigma2))
+y=a+b*n + eps
+mod <- lm(y ~ n)
 
+plot(y ~ n)
 
 ```
 
 Now lets look again at that plot of residuals vs. fitted values:
 
 ```{r}
-plot()  # Plot the model information
+plot(mod, which = 1)  # Plot the model information
 ```
 
 We decide our mayfly data is homoscedastic (same variance) so we can move on.
@@ -162,17 +164,16 @@ Rho (Spearman's rank coefficient) tells us a few things
 
 ```{r}
 
-MayCorSpear$
-
-rho_spear <- round()
+MayCorSpear$estimate
+round(MayCorSpear$estimate, 3)
 
 ```
 
 The p-value shows us whether that relationship is significant (depending on the sample size)
 
 ```{r}
-
-round()
+MayCorSpear$p.value
+round(MayCorSpear$p.value, 3)
 ```
 
 And you can stop here! You write this formally as something like, "Mayfly abundance is positively correlated with stream flow speed (rho = `r rho_spear`, p = `r round(MayCorSpear$p.value, 2)` )
@@ -180,8 +181,8 @@ And you can stop here! You write this formally as something like, "Mayfly abunda
 For the Pearson's Product Moment Correlation, or simple linear regression, you can use the same function with one modified argument to calculate a Pearson's Correlation Coefficient.
 
 ```{r}
-MayCorPear <- cor.test()
-
+MayCorPear <- cor.test(Abund, Speed, data = mayfly, method = "pearson")
+MayCorPear
 
 ```
 
@@ -200,9 +201,9 @@ If one variable is not obviously the independent or dependent variable, then you
 We've seen this before, when we were testing assumptions for the T-test and earlier in this tutorial. Regression and ANOVA are closely related, mathematically.
 
 ```{r}
-mayfly.lm <- 
-
-summary()
+mayfly.lm <- lm(Abund ~ Speed, data = mayfly)
+mayfly.lm
+summary(mayfly.lm)
 ```
 
 What outputs do we get from this model?
@@ -210,15 +211,15 @@ What outputs do we get from this model?
 1.  The slope of the best fit line is found under the Coefficients table, and is the "`Estimate`" for Speed.
 
 ```{r}
-slope <- 
-
+slope <- coef(mayfly.lm)[2]
+slope
 ```
 
 2.  The intercept of the line is found just above that, Estimate for `(Intercept)`
 
 ```{r}
-int <- coef()[]
-
+int <- coef(mayfly.lm)[1]
+int
 ```
 
 What is the formula for the best fit line?
@@ -232,14 +233,14 @@ Intuitively, this means that there is one additional mayfly for each additional 
 3.  The p-value for the significance of that line (just because you CAN fit a line doesn't mean it's very good)
 
 ```{r}
-summary()$
+summary(mayfly.lm)$coefficients[2,4]
 ```
 
 4.  The R-squared value is the proportion of the variation in the response (mayflies) that the linear relationship with the predictor variable (speed) explains.
 
 ```{r}
-Rsq <- 
-
+Rsq <- summary(mayfly.lm)$r.squared
+Rsq
 ```
 
 Speed explains 71% of the variation in mayfly abundance!
@@ -247,41 +248,39 @@ Speed explains 71% of the variation in mayfly abundance!
 #### Step 8: Communicate results with a plot and writing.
 
 ```{r}
-Mayflyplot <- ggplot() + 
-  aes() +
+Mayflyplot <- ggplot(mayfly) + 
+  aes(x = Speed, y = Abund) +
+  geom_point()
 
   
 Mayflyplot +
-  geom_smooth(method = , se = )
+  geom_smooth(method = "lm", se = FALSE)
 ```
 
 If your line wasn't significant, make sure that is clear by making it a dotted or dashed line.
 
 ```{r}
 Mayflyplot +
-  geom_smooth()
+  geom_smooth(method = "lm", se = FALSE, linetype = "dashed")
 ```
 
 IF YOUR LINEAR RELATIONSHIP IS SIGNIFICANT, it's also common to add the equation and R-squared value onto the plot, to be cool.
 
 ```{r}
-Rsq <- round()
-slope <- 
-int <- 
+Rsq <- round(Rsq, 2)
+slope <- round(slope, 2)
+int <- round(slope, 2)
 
 Mayflyplot +
-  geom_smooth() +
-  geom_text()
-```
-
-```{r}
-summary()
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_text(x = 10, y = 40,
+            label = paste("R-squared =", Rsq, "y = ", slope, "x + ", int)
 ```
 
 To report these results, we need to report a few things - the equation of the line may be interesting, but to report the result of the significance tests, we report the *R-squared* as well as the *F-statistic* and *degrees of freedom*, like we would for an ANOVA.
 
 ```{r}
-
+summary(mayfly.lm)
 ```
 
 Example: Water flow speed linearly predicted abundance of mayflies, explaining 71.3% of the variance (R\^2 = 0.7126, F(1,6) = 14.87, p \< 0.01).
@@ -308,7 +307,10 @@ pg
 #### Step 2: Visualize the data
 
 ```{r}
-ggplot()
+ggplot(pg) +
+  aes(x = nutrient, y = growth) +
+  geom_point() +
+  geom_smooth(method = "lm")
 ```
 
 Not so linear!
@@ -318,18 +320,20 @@ Not so linear!
 Does our line look better if we transform our independent variable?
 
 ```{r}
-ggplot()
+ggplot(pg) +
+  aes(log(nutrient), growth) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
 
-ggplot()
 ```
 
 To fit a linear model, you just plug in the log-transformed variable into the same linear model function that we used before.
 
 ```{r}
-pg.lm_bad <- lm()
+pg.lm_bad <- lm(growth ~ log(nutrient), data = pg)
 
 
-pg.lm <- lm()
+plot(pg.lm_bad)
 ```
 
 How do we apply these calculated coefficients to make a best fit line?
@@ -345,19 +349,26 @@ a = analogous to slope c = intercept
 #### Step 8: Communicate results with a plot and writing.
 
 ```{r}
-pg_plot <- ggplot()
+pg_plot <- ggplot(pg) +
+  aes(x = nutrient, y = growth) +
+  geom_point()
 
-pg_plot_plusline <-  +
-  geom_smooth(
-  )
+pg_plot_plusline <-  pg_plot+
+  geom_smooth(method = "lm", 
+              se = FALSE,
+              formula = y ~ log(x))
+  
 
-
+pg_plot_plusline
 ```
 
 ```{r}
-pg_plot <- ggplot() + 
-  aes() + 
-  geom_point() + geom_smooth()
+pg_plot <- ggplot(pg) + 
+  aes(x = log(nutrient), y = growth) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE)
+
+pg_plot
 ```
 
 Then we can also add our text to the plot with the equation and R-squared or whatever other information.
@@ -367,7 +378,7 @@ summary(pg.lm)
 
 
 pg_plot_plusline + 
-  geom_text(x = , y= , label = )
+  geom_text(x = 30, y= 5, label = "R-squared = 0.95, y = 5.10ln(x) + 0.69")
 ```
 
 ## Polynomial Regression
