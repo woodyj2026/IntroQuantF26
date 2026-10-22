@@ -19,18 +19,20 @@ library(readxl)
 
 You have been given data from several locations and survey years:
 
-- 2022: Corona del Mar (CDM) - size data only, taken haphazardly
+-   2022: Corona del Mar (CDM) - size data only, taken haphazardly
 
-- 2023: Treasure Cove (TC) - size data in 5-m transects, territories
+-   2023: Treasure Cove (TC) - size data in 5-m transects, territories
 
-- 2024: Heisler Park and Shaws Cove - size data in variable length transects, territories
+-   2024: Heisler Park and Shaws Cove - size data in variable length transects, territories
 
-- 2025: Treasure Cove (TC) - size data in 5-m transects, territories
+-   2025: Treasure Cove (TC) - size data in 5-m transects, territories
 
 ```{r}
 load(file = "Data/SizeData_2022_2025.Rdata")
+#The load() function allows data files to be loaded into the project so it can be used. 
 
 SizeData_2022_2025
+#The name of the data file must be repeated so the data frame will appear and can be viewed. This is just one of the ways of viewing the loaded data files. 
 ```
 
 ## **Part 1: Data Exploration**
@@ -42,9 +44,9 @@ Start with: `SizeData_2022_2025`
 Make a histogram with all the data.
 
 ```{r}
-ggplot(SizeData_2022_2025) +
-  aes(x = shell_length_mm) + 
-  geom_histogram()
+ggplot(SizeData_2022_2025) + #The ggplot() functions is used to create any graph and allows customization of a graph while pulling data from the data file named between the parenthesis. Here we loaded in SizeData_2022_2025.
+  aes(x = shell_length_mm) + #The aes() function is for aesthetics which tells the graph what variable from our dataset wil be on each axis. 
+  geom_histogram() #The geom_histogram() function tells the code that we want a histogram plot. Only the x axis must be determined with histograms. 
 
 ```
 
@@ -54,7 +56,7 @@ Make a histogram with a `facet_wrap()` to separate the data from each site and y
 ggplot(SizeData_2022_2025) +
   aes(x = shell_length_mm) + 
   geom_histogram() +
-  facet_wrap(site~year) 
+  facet_wrap(site ~ year) #The facet_wrap() function allows for the graph to be broken into different frames depending on what is specified. In this example, the graph is separated by year AND site. 
   
 
 ```
@@ -62,8 +64,8 @@ ggplot(SizeData_2022_2025) +
 We know our minimum size cut-off varied in different years of the surveys, and some teams just didn't follow directions. Filter out any observations smaller than 15 cm.
 
 ```{r}
-SizeData_2022_2025 <- SizeData_2022_2025 |> 
-  filter(shell_length_mm >= 15)
+SizeData_2022_2025 <- SizeData_2022_2025 |> #The arrow assigns/saves the value of the function on the right of the arrow to the name on the left.
+  filter(shell_length_mm >= 15) #The filter() function allows for the data to be sorted for only the observations that fit the criteria within the parenthesis. For this example, the only observations kept are ones where shell length in greater than or equal to 15. 
 
 SizeData_2022_2025
 ```
@@ -74,8 +76,8 @@ Make a table using `select()` and `distinct()` to only show the length of each t
 
 ```{r}
 TransectLengths <- SizeData_2022_2025 |> 
-  select(year, site, transect_num, transect_length_m) |> 
-  distinct()
+  select(year, site, transect_num, transect_length_m) |> #The select() function allows us to determine which columns within the dataset we want to display. For this example, we chose to only display the columns year, site, transect number, and transect length.
+  distinct() #The distinct() function keeps only unique observations and gets rid of any observations that has matching data across ALL columns.
 
 TransectLengths
 
@@ -91,28 +93,28 @@ TransectLengths
 
 Visualize the transect lengths two different ways.
 
-- Make one boxplot with transect length on the y-axis, and site on the x-axis.
+-   Make one boxplot with transect length on the y-axis, and site on the x-axis.
 
-- Use `geom_point()` to make a scatter plot with the same axes.
+-   Use `geom_point()` to make a scatter plot with the same axes.
 
-- combine the two so that the points are red and overlay the boxplot graph.
+-   combine the two so that the points are red and overlay the boxplot graph.
 
 ```{r}
 TransectLengths |> ggplot() + 
   aes(x = site, y = transect_length_m) +
-  geom_boxplot()
+  geom_boxplot() #The geom_boxplot() function displays the data in a boxplot graph. Both x axes and y axes must be determined within the aes() function. 
 
   
 
 TransectLengths |> ggplot() +
   aes(x = site, y = transect_length_m) +
-  geom_point()
+  geom_point() #The geom_point() function displays the date as a scatter plot. Both x axes and y axes must be dtermined within the aes() function. 
 
 
 TransectLengths |> ggplot() +
   aes(x = site, y = transect_length_m) +
   geom_boxplot() +
-  geom_point(color = "firebrick")
+  geom_point(color = "firebrick") #Within the parenthesis of the function determining plot type, for this it is geom_point(), we can assign color to the points by writing color = "name of color". 
 
   
   
@@ -128,7 +130,7 @@ Graph 1:
 
 ```{r}
 SizeData_2022_2025_point <- ggplot(SizeData_2022_2025) +
-  aes(x = site, y = shell_length_mm, color = habitat) +
+  aes(x = site, y = shell_length_mm, color = habitat) + #Within the aes() function you can assign graph features colors based on another chosen column within the dataset. For this example, the color of the point tells what habitat that observation was in. 
   geom_point()
 
 SizeData_2022_2025_point
@@ -155,7 +157,7 @@ For the population density analysis, we will analyze data from Shaws Cove, Heisl
 
 ```{r}
 No_CDM_Sizes <- SizeData_2022_2025 |> 
-  filter(site != "Corona del Mar")
+  filter(site != "Corona del Mar") #The != means not equal to, while == means equal to. 
 No_CDM_Sizes
 ```
 
@@ -168,12 +170,12 @@ No_CDM_Sizes
 
 # How many did we measure total, across both sites?
 No_CDM_Sizes |> 
-  nrow()
+  nrow() #The nrow() function tells us the total number of rows within the dataset. We can use this to tell us the total number of limpets measured because each row is a single observation. 
 
 ## How many did we measure at each site? 
 No_CDM_Sizes |> 
-  group_by(year, site) |> 
-  count()
+  group_by(year, site) |> #The group_by() function groups/splits the date by the columns specified. For this example, the observations are grouped by year and site.
+  count() #The count() function counts the unique number of rows within the dataset and excludes any row that has matching data across ALL columns. 
   
 
 # How many did we measure in each transect? 
@@ -190,7 +192,7 @@ Make a new dataframe out of the `No_CDM_Sizes` that has a column called *density
 Limpet_Density <- No_CDM_Sizes |> 
   group_by(year, site, transect_num, transect_length_m) |> 
   count() |> 
-   mutate(density = n/(transect_length_m*2))
+   mutate(density = n/(transect_length_m*2)) #The mutate() function allows for new cokumns to be added to the dataset. The name on the lef tof the equal sign is the new column name. The information on the right of the equal sign is what columns you are pulling dataframe and what you are doing to it to get new data. In this example, we are calculating density using transect length. 
   
   
 
@@ -204,17 +206,17 @@ Do you see any patterns just from examining this table of values?
 What was the mean limpets per square meter across all sites? And the standard deviation? And standard error?
 
 ```{r}
-Limpet_Density$density |> 
-  mean()
+Limpet_Density$density |> #The $ signifies that we only want to work within a particular column. On the left side is the dataset we are pulling from and on the right is the column we are pulling from. 
+  mean() #The mean() function calculates the mean of the data inputed. 
 
 Limpet_Density$density |> 
-  sd()
+  sd() #The sd() function calculates the standard deviation of the data inputed.
 
-n <- Limpet_Density$density |> 
-  length()
+n <- Limpet_Density$density |> #We must calculate the number of observations, n, of our dataset.
+  length() #The length() function tells us how many elements, or observations, are in the dataset. 
 
 Limpet_Density$density |> 
-  sd()/sqrt(n)
+  sd()/sqrt(n) #This is the formula for calculating standard error.
 ```
 
 Now create a summary table in which you calculate separate mean and standard deviation for each site and year (Shaws vs. Heisler vs. Treasure Cove)? What was the standard error? Round the mean and standard error to one decimal place. (look up the `round()` function!)
@@ -223,12 +225,13 @@ Now create a summary table in which you calculate separate mean and standard dev
 # use summarize() to calculate the mean and standard error (sd/sqrt(n)) for the two locations
 LimpetPopSummary <- Limpet_Density |>
   group_by(year, site) |> 
-  summarize(mean_density = mean(density), # mean 
+  summarize( #The summarize() function creates the summary statistics that is requested of the dataset. In this example, we want the summary statistics for density and we calculate the mean, sd, se, and n.
+    mean_density = mean(density), # mean 
             sd_density = sd(density),  # standard deviation
             n = n(), # count
             se_density = sd_density/sqrt(n)) |>  # standard error
-  mutate_at(vars(mean_density, sd_density, se_density), # bonus line to reduce digits
-            .funs = round, 2) 
+  mutate_at(vars(mean_density, sd_density, se_density), 
+            .funs = round, 2) # This line reduces/rounds the data calculated in our summary statistics table. The vars() function distinguishes which variables we are going to change. 
   
   
   
@@ -247,9 +250,9 @@ Limpet_Density |>
   ggplot() + 
   aes(x = site, y = density) +
   ylab("Limpets per square meter") +
-  xlab("Site") +
-  theme_classic() +
-  geom_boxplot(aes(fill = year))
+  xlab("Site") + #The ylab() and xlab() functions allow us to rename the y and x axis labels to whatever we write between the quotations. 
+  theme_classic() + #The theme_classic() function makes the graph have a simple white background.
+  geom_boxplot(aes(fill = year)) #The fill = year assigns the graphs to be filled in with a color designated to the variable. In this example, each color represents the year the data was collected in.
   
  
   
@@ -261,8 +264,8 @@ A column plot with errorbars, and fill = year, using your new `LimpetPopSummary`
 LimpetPopSummary |> 
   ggplot() +
   aes(x = site, y = mean_density, fill = year) +
-  geom_col(position = "dodge") +
-  geom_errorbar(aes(ymin = mean_density - se_density,
+  geom_col(position = "dodge") + #The geom_col() function creates a column plot. position = "dodge" 
+  geom_errorbar(aes(ymin = mean_density - se_density, #Th geom_errorbar() function creates an errorbar for each bar. The ymin is the formula for the lower limit of the errorbar and the ymax is the formula for the upper limit of the errorbar. 
                     ymax = mean_density + se_density),
                 position = "dodge") +
   ylab("Limpets per square meter") +
@@ -280,7 +283,7 @@ A `geom_point()` or `geom_jitter()`plot to visualize individual transect density
 Limpet_Density |> 
   ggplot() + 
   aes(x = site, y = density, color = factor(year)) +
-  geom_point(position = position_dodge(width = 0.9), size = 2) 
+  geom_point(position = position_dodge(width = 0.9), size = 2)  #with geom_point() the width for position_dodge must be determined because the function does not set the points far enough apart to distinguish which points are for which section. 
   
   
   
@@ -295,13 +298,13 @@ Based on these plots, does your data meet assumptions for a t-test?
 
 T-Test assumptions (for a Student's T-test)
 
-- Are the data continuous (i.e., not categorical/discrete)? Yes it is continuous.
+-   Are the data continuous (i.e., not categorical/discrete)? Yes it is continuous.
 
-- Have the sample data been randomly sampled from a population? Yes it is random.
+-   Have the sample data been randomly sampled from a population? Yes it is random.
 
-- Is there homogeneity of variance (i.e., the variability of the data in each group is similar)? There is homogeneity of variance.
+-   Is there homogeneity of variance (i.e., the variability of the data in each group is similar)? There is homogeneity of variance.
 
-- Is the distribution of the model residuals approximately normal? Yes, the distribution is approximately normal.
+-   Is the distribution of the model residuals approximately normal? Yes, the distribution is approximately normal.
 
 #### 2.5 What is the sample size (of transects) for each site/year for our study of limpet population density?
 
@@ -325,7 +328,7 @@ ShawsHeislerDensity <- Limpet_Density |>
   filter(site != "Treasure Cove")
 ShawsHeislerDensity
 
-t.test(density ~ site, data = ShawsHeislerDensity)
+t.test(density ~ site, data = ShawsHeislerDensity) #The t.test() function runs a t-test to determine if there is a significant difference between the means of the inputed data. For this example, we are looking at the dataset ShawsHeislerDensity and we are comparing for density as the DV and site as the IV. 
 
 ```
 
@@ -344,7 +347,7 @@ TC_density |>
   ggplot() +
   aes(x = year, y = density) +
   geom_point() +
-  ggtitle("Density of Owl Limpets at Treasure Cove (2023 vs 2025)")
+  ggtitle("Density of Owl Limpets at Treasure Cove (2023 vs 2025)") #The ggtitle() function allows you to name the graph. 
 ```
 
 Since there was no difference in means, we'll ignore year at Treasure Cove from now on and just pool our data to make it easier for ourselves.
@@ -370,7 +373,7 @@ SizeData_2022_2025
 Shell_summary <- SizeData_2022_2025 |> 
   group_by(site, year) |> 
   summarize(mean_shell = mean(shell_length_mm, na.rm = TRUE), # mean 
-            sd_shell = sd(shell_length_mm, na.rm = TRUE),  # standard deviation
+            sd_shell = sd(shell_length_mm, na.rm = TRUE),  #The na.rm = TRUE gets rid of any data that contains NA within its cells. # standard deviation
             n = n()) |>   # count
   mutate_at(vars(mean_shell, sd_shell), # bonus line to reduce digits
             .funs = round, 2) 
@@ -400,11 +403,11 @@ We have a much larger sample size for shell lengths than we did for density, so 
 
 T-Test assumptions (for a Student's T-test)
 
-- Are the data continuous (i.e., not categorical/discrete)? **YES**
+-   Are the data continuous (i.e., not categorical/discrete)? **YES**
 
-- Have the sample data been randomly sampled from a population? **(Yes)**
+-   Have the sample data been randomly sampled from a population? **(Yes)**
 
-- Is there homogeneity of variance (i.e., the variability of the data in each group is similar)? **NO**
+-   Is there homogeneity of variance (i.e., the variability of the data in each group is similar)? **NO**
 
 ```{r}
 ## Test for Homogeneity of Variance with an F-Test
@@ -415,11 +418,11 @@ CDM_TC_Sizes <- SizeData_2022_2025 |>
 CDM_TC_Sizes
   
 # set the linear model for testing the assumptions
-model <- lm(shell_length_mm ~ site, data = CDM_TC_Sizes)
+model <- lm(shell_length_mm ~ site, data = CDM_TC_Sizes) #The lm() function creates a linear model based off of the chosen variables within the dataset. The DV is on the left of the ~ and the IV is on the right. 
 model
 
 # Examine plot of Residuals vs. Fitted values
-plot(model, which = 1)
+plot(model, which = 1) #The plot() function creates a residuals vs fitted plot, and others, of the linear model we created above. The which = 1 portion says we only want to view the first plot created which is residuals vs fitted. 
 
 # F-test for homogeneity of variance - if p-value < 0.05 then variances are different. 
 var.test(shell_length_mm ~ site, data = CDM_TC_Sizes)
@@ -428,16 +431,16 @@ var.test(shell_length_mm ~ site, data = CDM_TC_Sizes)
 
 ```
 
-- Is the distribution of the model residuals approximately normal?
+-   Is the distribution of the model residuals approximately normal?
 
 ```{r}
 ## Test for normality
 
 # examine a QQ-plot
-plot(model, which = 2)
+plot(model, which = 2) #The QQ plot is the second plot produced by the plot() function and that is why which = 2.
 
 # conduct a Shapiro-Wilk test on the residuals
-shapiro.test(model$residuals)
+shapiro.test(model$residuals) #The Shapiro-Wilk test tells us if the data is distributed normally. 
 ```
 
 Why will we not pay attention to this Shapiro-Wilk test result? Because the sample size is very large and Shapiro-Wilk is overly sensitive (gives false positives) at large sample sizes.
@@ -446,7 +449,7 @@ Why will we not pay attention to this Shapiro-Wilk test result? Because the samp
 
 ```{r t-test or Wilcox}
 # calculate the t-test results
-t.test(shell_length_mm ~ site, data = CDM_TC_Sizes, var.equal = FALSE)
+t.test(shell_length_mm ~ site, data = CDM_TC_Sizes, var.equal = FALSE) #The var.equal = FALSE tells us that the variance is not equal and this must be taken into consdireation when running a t-test.
 ```
 
 #### [3.3 Graph your results using a column plot with error bars for standard error]{.underline}
@@ -509,7 +512,7 @@ All_Territories
 
 All_Territories |> 
   relocate(site, year, .before = location) |> 
-  relocate(year, .before = site) 
+  relocate(year, .before = site) #The relocate() function allows us to rearrange the columns into specific orders. The columns listed before the comma are the ones we are moving and after the comma designates where we are moving it to. 
 ```
 
 #### 4.2 How many limpet territories did we measure?
@@ -527,9 +530,9 @@ All_Territories |>
 
 Create new columns for:
 
-- territory area in square millimeters from the "`numbsquares`" column
+-   territory area in square millimeters from the "`numbsquares`" column
 
-- Limpet body mass from shell length (equation below is from Fenberg et al. 2013).
+-   Limpet body mass from shell length (equation below is from Fenberg et al. 2013).
 
 ```{r}
 All_Territories_area_mass <- All_Territories |> 
@@ -587,7 +590,10 @@ All_Territories_area_mass |>
 The main observation I made about these plots is that they all show a positive correlation between limpet size, mass and length, and territory size. This shows that territory size is dependent on limpet size. The limpets at Treasure Cove are significantly larger than the limpets at other sites, and this could be explained by the fact that Treasure Cove is the only undisturbed site.
 
 ```{r}
-
+All_Territories_area_mass |>
+  ggplot() + 
+  aes(x = site, y = mass_g) +
+  geom_boxplot()
 ```
 
 #### 4.6. What important assumptions of tests of linear regression do these scatter plots fail? How can you tell?
@@ -596,7 +602,7 @@ The main observation I made about these plots is that they all show a positive c
 
 # write a linear model for the relationship, then use the plot() function on the model object to show the residuals vs. fitted values and QQ plots to assess your regression. 
 
-linear_model <- lm(     )
+linear_model <- lm(area_mm2 ~ mass_g, data = All_Territories_area_mass)
 
 plot(linear_model)
 ```
@@ -608,13 +614,17 @@ One way to transform data that has this shape is to apply a log-transformation. 
 ```{r scatterplot with regression line}
 # plot a scatterplot log area on y axis by log mass_g on x axis, best fit regression line but no SE interval
 
-All_Territories_area_mass |> ggplot() + 
+All_Territories_area_mass |> 
+  ggplot() + 
+  aes(log(mass_g), log(area_mm2)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
 
 ```
 
 ```{r}
 # write the linear model object and examine the residual and QQ plots
-log_model <- lm(     )
+log_model <- lm(log(area_mm2) ~ log(mass_g), data = All_Territories_area_mass)
   
 plot(log_model, which = 1)
 plot(log_model, which = 2)
@@ -624,7 +634,7 @@ plot(log_model, which = 2)
 
 ```{r linear regression test summary}
 
-
+summary(log_model)
 
 ```
 
@@ -642,16 +652,24 @@ plot(log_model, which = 2)
 FenbergTerr
 
 # Plot the Fenberg data with the log transformations
-FenbergTerr |> ggplot() +
+FenbergTerr |> 
+  ggplot() +
+  aes(log(mass_g), log(area_mm2)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
  
 
 # Find the slope and intercept of the best fit line
-Fenberg_model <- lm(   )
+Fenberg_model <- lm(log(area_mm2) ~ log(mass_g), data = FenbergTerr)
+
+summary(Fenberg_model)
 
 
 ```
 
 Explain your findings!
+
+The slope of the line of best fit is 0.8916 and the intercept of the line of best fit is 7.91. This means the line of best fit equation for the Fenberg data is y = 0.8916x + 7.910. The line of best fit equation for the All_Territories data is y = 0.8903 + 8.2116. Comparing the best fit lines of the log transformed data shows that the Fenberg data follows the same patterns found in the All_Territories data where for every one additional mm2 of territory about 0.89 grams of mass are added to the owl limpet.
 
 ### Part 5: EXTRA CREDIT:
 
