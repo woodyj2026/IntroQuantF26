@@ -7,7 +7,7 @@ editor: visual
 ---
 
 ```{r setup, include=FALSE}
-knitr::
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Two-Way ANOVA Tutorial
@@ -15,8 +15,8 @@ knitr::
 **Load Packages**
 
 ```{r cars}
-install.packages("")
-install.packages("")
+install.packages("ggpubr")
+install.packages("ggsignif")
 
 library(tidyverse)
 ```
@@ -24,7 +24,7 @@ library(tidyverse)
 **Load Data**
 
 ```{r}
-load(file = )
+load(file = "Demo Data Files/s4E2e.RData")
 ```
 
 This time let's work with a dataset that has tested TWO factors.
@@ -52,9 +52,9 @@ Lets follow all our steps:
 ### Step 1: Tidy your data and prepare it for analysis
 
 ```{r}
+pw
 
-
-
+names(pw)
 ```
 
 This dataset is already in tidy format. Lucky us!
@@ -82,8 +82,9 @@ The second formula can also be written as: `height ~ plant + water + plant:water
 ### Step 3: Visualize the data
 
 ```{r}
-ggplot() +
-  aes() + 
+ggplot(pw) +
+  aes(x = water, y = height, fill = plant) + 
+  geom_boxplot()
 
 ```
 
@@ -98,12 +99,12 @@ If the residuals all plot within the gray area, its all normal.
 ```{r}
 
 # Build the linear model
-model  <- lm()
+model  <- lm(height ~ plant * water, data = pw)
 
-plot(, which = )
+plot(model, which = 2)
 
 # Create a QQ plot of residuals
-ggpubr
+ggpubr::ggqqplot(residuals(model))
 ```
 
 #### Homogeneity of variance:
@@ -115,9 +116,9 @@ For multi-way ANOVA, Levene's test works pretty well.
 (Remember, the :: operator allows you to use a function from a package you have installed without having to load the whole package)
 
 ```{r}
-plot()
+plot(model, which = 1)
 
- %>% rstatix::levene_test( )
+ pw %>% rstatix::levene_test(height ~ plant * water)
 ```
 
 Looks pretty okay!
@@ -126,11 +127,12 @@ Looks pretty okay!
 
 ```{r}
 #There are two ways to run ANOVA. This one is useful for some functions, aov() we'll do for the Tukey Test. Both come out with the same answer. 
-model_pw_lm <- 
-anova()
+model_pw_lm <- lm(height ~ plant * water, pw)
+anova(model_pw_lm)
 
-model_pw_aov <- 
-summary()
+model_pw_aov <- aov(height ~ plant * water, pw)
+summary(model_pw_aov
+        )
 ```
 
 At first pass, it looks like:
@@ -163,15 +165,15 @@ Here, rows are the species treatment (2 - 1 = 1) and columns are the water treat
 
 ```{r}
 
-pw |>  # 18 total rows
+pw |> count() # 18 total rows
 
-# 
+nrow(pw) - (2*3)# 
 ```
 
 Let's see if what we computed matches with the model output:
 
 ```{r}
-
+model_pw_aov
 
 ```
 
@@ -194,7 +196,7 @@ It will give us the pairwise differences within each treatment (ignoring the oth
 
 #model_pw_aov 
 
-TukeyHSD()
+TukeyHSD(model_pw_aov)
 ```
 
 So we already knew there wasn't a difference between plant species, and as there are only two, it only shows us one pairwise p-value.
@@ -208,11 +210,13 @@ Within the interactions, we want to focus on the pairs that are of interest to u
 Make the summary
 
 ```{r}
-pw_summary <-  |> 
-  group_by() |> 
+pw_summary <- pw |> 
+  group_by(water, plant) |> 
   summarise(
-    mean = , 
-    se = )
+    mean = mean(height), 
+    se = sd(height)/sqrt(length(height)))
+
+pw_summary
 
 ```
 
@@ -222,30 +226,32 @@ Position here is important - the "dodge" puts the columns side by side. You also
 ```{r}
 
 # This is what it looks like without the dodge: not useful! 
-ggplot() + 
-  aes() + 
+ggplot(pw_summary) + 
+  aes(x = water, y = mean, fill = plant) + 
   geom_col() + 
-  geom_errorbar(aes()
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.2)
 
 # These two make the same plot but with different ggplot methods. For the first one, you compute the summary table and use that to manually make the plot. 
-ggplot() + 
-  aes() + 
-  geom_col() + 
-  geom_errorbar()
+ggplot(pw_summary) + 
+  aes(x = water, y = mean, fill = plant) + 
+  geom_col(position = "dodge") + 
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), position = position_dodge(0.9), width = 0.2) 
+
 
 
 # This second method computes the summary statistics for you using stat_summary! Very useful, I just always forget how it works, so I tend to compute my own summary statistics. Either way is valid. 
 pw |> 
   ggplot() +
-  aes() +
-  stat_summary()+
+  aes(x = water, y = height, fill = plant) +
+  stat_summary(fun = mean, geom = "col", position = "dodge") + 
+  stat_summary(fun.data = mean_se, geom = "errorbar", position = position_dodge(0.9), width = 0.1)
   
 ```
 
 Finally, need to annotate for significance.
 
 ```{r}
-TukeyHSD()
+TukeyHSD(model_pw_aov)
 ```
 
 You saw up above this was a lot to pick apart, and we don't need to put a \* or bracket over every pairwise comparison. A shortcut approach is to order the treatment combinations by means from largest to smallest. Based on the height of bars in the plot, this is:
@@ -268,20 +274,16 @@ Now check the pair of the two highest, then the second with the third highest, a
 Then you get the logic puzzle of figuring out the letters. Start left to right.
 
 ```{r}
-ggplot() + 
-  aes(x = , y = , fill = ) + 
-  geom_col(position = ) + 
-  geom_errorbar()+
+ggplot(pw_summary) + 
+  aes(x = factor(water, levels = c("lo", "mid", "hi")), y = mean, fill = plant) + 
+  geom_col(position = "dodge") + 
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), position = position_dodge(0.9), width = 0.2) +
   geom_text(
-    label = 
-    position = 
-    aes()
-    vjust = 
-    size = 
-  ylim()
+    label = c("C", "D", "A", "A", "B", "B"),
+    position = position_dodge(0.9),
+    aes(y = mean + se, x = water),
+    vjust = -0.5,
+    size = 6) +
+  ylim(0, 50)
 
-library()
-
-ggplot()
-  
 ```
