@@ -7,12 +7,12 @@ editor: visual
 ---
 
 ```{r}
-install.packages()
+install.packages("pwr")
 
 library(pwr)
 library(tidyverse)
 
-load(file = )
+load(file = "Demo Data Files/CleanOwlLimpet_Data2023.Rdata")
 ```
 
 ## 1. The Setting: Owl Limpet T-test
@@ -20,12 +20,13 @@ load(file = )
 So in our Owl Limpet Analysis assignment, we ran a t-test and found that there was a [highly]{.underline} significant difference (p \< 0.0000000000000001, *LOL*) in limpet shell size between Corona del Mar and Treasure Cove.
 
 ```{r}
-t.test()
+t.test(CDM_Data2022$shell_length_mm, TC_Data2023$shell_length_mm)
 ```
 
 ```{r}
-ggplot() + 
-  aes(x = , color = ) + 
+ggplot(All_Size_Data) + 
+  aes(x = shell_length_mm, color = site) + 
+  geom_density()
   
 ```
 
@@ -85,26 +86,28 @@ We can intuit from this equation how certain quantities will change with each ot
 Effect size is a quantitative measure of the magnitude of the experimental effect. The larger the effect size the stronger the relationship between two variables. For a test of difference, this can be a larger difference between means. For a correlation or regression, this can be how "tight" the relationship is.
 
 ```{r}
-var1 <- rnorm(, mean = , sd = )
-var2 <- rnorm()
-var3 <- 
-large <- c()
-small <- c()
+var1 <- rnorm(10, mean = 12, sd = 1)
+var2 <- rnorm(10, mean = 5, sd = 1)
+var3 <- rnorm(10, mean = 11, sd = 1)
+large <- c(var1,var2)
+small <- c(var1,var3)
 
-names <- c()
-diff_large <- tibble()
-diff_small <- 
+names <- c(rep("var1", 10), rep("var2", 10))
+diff_large <- tibble(names, large)
+diff_small <- tibble(names, small)
 
-large <- ggplot(, aes()) + geom_boxplot() + labs(title = , x =, y = )
-small <- ggplot()
+large <- ggplot(diff_large, aes(names,large)) + geom_boxplot() + labs(title = "large effect size", x = "", y = "")
+small <- ggplot(diff_small, aes(names,small)) + geom_boxplot() + labs(title = "small effect size", x = "", y = "")
 
-tight <- tibble()
+tight <- tibble(sort(var1), sort(var3))
 
-loose <- ggplot()
-tightlm <- ggplot()
+loose <- ggplot(tight, aes(var1,var3)) + geom_point() + geom_smooth(method = "lm") + labs(x = "", y = "")
+tightlm <- ggplot(tight, aes(`sort(var1)`,`sort(var3)`)) + geom_point() + geom_smooth(method = "lm") + labs(x = "", y = "")
 
+install.packages("patchwork")
 library(patchwork)
 
+(small | large) / (loose | tightlm)
 ```
 
 #### Intuiting Effect Size
@@ -133,13 +136,13 @@ $$(mean_1 - mean_2) / stdev_{pooled12}$$
 
 ```{r}
 # what was our effect size for the difference between CDM and TC? 
-mean_CDM <- mean()
-mean_TC <- 
-pooled_sd <- 
+mean_CDM <- mean(CDM_Data2022$shell_length_mm)
+mean_TC <- mean(TC_Data2023$shell_length_mm)
+pooled_sd <- sd(All_Size_Data$shell_length_mm)
 
-Effect_size <- abs()/
+Effect_size <- abs(mean_CDM - mean_TC)/pooled_sd
 
-print()
+print(Effect_size)
 ```
 
 We may not have needed to collect QUITE that many samples.
@@ -152,12 +155,14 @@ However, larger sample sizes in ecological experiments can be a lot of work, spa
 
 ```{r}
 # sample size at each location within TC
-location_n_TC <-  |>
-  group_by() |>
+install.packages("janitor")
+
+location_n_TC <- All_Size_Data |>
+  group_by(site) |>
   count() |>
-  janitor::
+  janitor::adorn_totals("row")
   
-knitr::
+knitr::kable(location_n_TC)
 ```
 
 Remember, the number of experimental units (all the observations in the whole study) is not the same as the sample size (the number of replicates for each treatment). Having roughly equal sample sizes across treatments makes for easier statistical analysis.
@@ -172,11 +177,11 @@ So how many limpets did we actually need to sample at each site to detect an eco
 
 ```{r}
 pwr.t.test(
-  n = ,
-  d = ,
-  sig.level = ,
-  power = ,
-  type = 
+  n = NULL,
+  d = 0.8,
+  sig.level = 0.05,
+  power = 0.80,
+  type = "two.sample"
 )
 
 ```
@@ -186,13 +191,13 @@ Could we really have measured only 25 limpets at each site and still detected an
 ```{r}
 # This code chooses 25 random observations from each site and creates a subsample data frame
 Subsample <- All_Size_Data |>
-   |>
- 
+   group_by(site) |>
+ sample_n(25)
 
-count()
+count(Subsample)
 
 # because each subsample is random, you'll get a different p-value each time you run it. 
-t.test()
+t.test(shell_length_mm ~ site, Subsample)
 ```
 
 The fact that we have such a large data set actually gives us a good opportunity to demonstrate **sampling distributions.** *goes one level deeper into Inception*
@@ -202,53 +207,54 @@ We are PRETTY DARN CONFIDENT that our difference is real, right? If we sampled o
 ```{r}
 pvals <- c()
 diffs <- c()
-for(i in ) {
-  Subsample <- |>
-   |>
-  sample_n()
-  temp <- t.test()
-  diffs[] <- temp$estimate[] - 
-  pvals[] <- 
+for(i in 1:1000) {
+  Subsample <- All_Size_Data |>
+    group_by(site) |>
+    sample_n(25)
+  temp <- t.test(shell_length_mm ~ site, Subsample)
+  diffs[i] <- temp$estimate[2] - temp$estimate[1]
+  pvals[i] <- temp$p.value
 }
 
-temp <- tibble() |> 
-  mutate( (
-    pvals >= 
-    pvals < 
-    pvals < 
-    pvals < 
+temp <- tibble(diffs, pvals) |> 
+  mutate(sig = case_when(
+    pvals >= 0.05 ~ "NS",
+    pvals < 0.05 & pvals >= 0.01 ~ "*",
+    pvals < 0.01 & pvals >= 0.001 ~ "**",
+    pvals < 0.001 ~ "***"
   )) 
 
 temp |>
-   |>
-  
+  group_by(sig) |>
+  count()
 
 temp2 <- temp |>
-   |>
-  |>
+  group_by(sig) |>
+  count() |>
   ggplot() + 
-  aes() + 
+  aes(x = sig, y = n) + 
   geom_col()
 
+temp2
 
 ```
 
 Is a smaller sample more likely to pass the normality test? Does this change how we think about tests of normality for data sets with large sample sizes?
 
 ```{r}
-full_model <- lm()
+full_model <- lm(shell_length_mm ~ site, All_Size_Data)
 
-plot()
+plot(full_model, which = 2)
 
-shapiro.test()
-
-
-
-subsample_model <- 
-
-plot()
+shapiro.test(full_model$residuals)
 
 
+
+subsample_model <- lm(shell_length_mm ~ site, Subsample)
+
+plot(subsample_model, which = 2)
+
+shapiro.test(subsample_model$residuals)
 ```
 
 ### Power
@@ -266,7 +272,7 @@ In what kind of test might higher power be really important? Consider the follow
   - Fun Fact! OTC COVID-19 rapid antigen tests have a sensitivity of about 0.65 in symptomatic individuals and about 0.44 in asymptomatic individuals (Jegerlehner et al. 2021, *Int.J.Inf.Dis.*). This is why most OTC test kits recommend taking two tests within 24 hours; the probability of getting a false negative twice in a row is much lower!
 
 ```{r}
-()^2
+(1 - 0.65)^2
 ```
 
 - You are an EPA scientist tasked with determining whether a new fertilizer should be approved for use in agriculture near rivers; anecdotal evidence suggests that it may have detrimental impacts on river invertebrate communities. You are given unreplicated data from 8 rivers; four where the fertilizer is used, four where it is not. Assuming that a moderate effect size (0.5) would be important and α = 0.05, how confident would you be approving or rejecting the fertilizer for use based on the river data?
@@ -293,47 +299,64 @@ How much does raising the power we desire increase our minimum sample size?
 
 ```{r}
 Power08 <- pwr.t.test(
-  n = ,
-  d = 
-  sig.level = 
-  power = 
-  type = 
+  n = NULL,
+  d = 0.8,
+  sig.level = ,
+  power = 0.8,
+  type = "two.sample"
 )
 
+Power08
 ```
 
 ```{r}
 Power09 <- pwr.t.test(
-  n = 
-  d = 
-  sig.level = 
-  power =
-  type = 
+  n = NULL,
+  d = 0.8,
+  sig.level = 0.05,
+  power = 0.90,
+  type = "two.sample"
 )
 
 Power095 <- pwr.t.test(
-
+  n = NULL,
+  d = 0.8,
+  sig.level = 0.05,
+  power = 0.95,
+  type = "two.sample"
 )
 
-Power099 <- 
+Power099 <- pwr.t.test(
+  n = NULL,
+  d = 0.8,
+  sig.level = 0.05,
+  power = 0.99,
+  type = "two.sample"
+)
 
-Power0999 <- 
+Power0999 <- pwr.t.test(
+  n = NULL,
+  d = 0.8,
+  sig.level = 0.05,
+  power = 0.999,
+  type = "two.sample"
+)
 
 Power09$n
-Power095$
-
-
+Power095$n
+Power099$n
+Power0999$n
 ```
 
 What was the **power** of our full-scale owl limpet study for the difference between CDM and TC?
 
 ```{r}
 pwr.t.test(
-  n = nrow(),
-  d = 
-  sig.level = 
-  power = 
-  type = 
+  n = 187,
+  d = 0.9599906,
+  sig.level = 0.05,
+  power = NULL,
+  type = "two.sample"
 )
 
 # our experiment was so overpowered that R just rounded it to 1. 
@@ -363,22 +386,21 @@ There is a trade-off here with power! Adjusting your significance lower (i.e., r
 Let's play around with this concept. What if we hold the effect size constant, and vary sample size, significance, and see what happens to power? Remember, our optimal place is where significance is low as possible and power is as high as possible.
 
 ```{r}
-n_test <- c()
-d_test <- rep()
-sig_level <- rep(c()
+n_test <- c(rep(10, 10), rep(25, 10), rep(40, 10), rep(80, 10))
+d_test <- rep(0.5, 40)
+sig_level <- rep(c(0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.15, 0.2, 0.25), 4)
 
-test <- tibble() |>
-  mutate(power = 
-    n = 
-    d = 
-    sig.level = 
-    type = 
+test <- tibble(n_test, d_test, sig_level) |>
+  mutate(power = pwr.t.test(
+    n = n_test, 
+    d = d_test, 
+    sig.level = sig_level, 
+    type = "two.sample")$power)
 
-ggplot() +
-  aes(x = , y = , color = , group = ) + 
- 
-
-
+ggplot(test) +
+  aes(x = sig_level, y = power, color = factor(n_test), group = factor(n_test)) + 
+  geom_point() +
+  geom_line()
 ```
 
 Where do you get the most "bang" (power) for your "buck" (low significance) when the sample size is small?
@@ -392,15 +414,15 @@ Where do you get the most "bang" (power) for your "buck" (low significance) when
 What was the minimum sample size needed to detect the difference between TC near vs far?
 
 ```{r}
-t.test(, data = )
-d_tc <- abs()/sd()
+t.test(shell_length_mm ~ location, data = TC_Data2023)
+d_tc <- abs(43.92547 - 42.29670)/sd(TC_Data2023$shell_length_mm)
 
 pwr.t.test(
-  n =
-  d = 
-  sig.level =
-  power = 
-  type = 
+  n = NULL,
+  d = d_tc,
+  sig.level = 0.05,
+  power = 0.8,
+  type = "two.sample"
 )
 
 
@@ -409,9 +431,15 @@ pwr.t.test(
 What was the minimum sample size needed to detect the difference between CDM near vs far with a power of 0.8?
 
 ```{r}
-cdm_test <- t.test()
-d_cdm <- abs()/sd()
+cdm_test <- t.test(shell_length_mm ~ location, data = CDM_Data2022)
+d_cdm <- abs(cdm_test$estimate[1] - cdm_test$estimate[2])/sd(CDM_Data2022$shell_length_mm)
 
-pwr.t.test()
-  
+pwr.t.test(
+  n = NULL,
+  d = d_cdm,
+  sig.level = 0.05,
+  power = 0.8,
+  type = "two.sample"
+)
+
 ```

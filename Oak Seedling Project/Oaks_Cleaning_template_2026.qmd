@@ -1,0 +1,225 @@
+---
+title: "Oaks_Cleaning_EDA_template"
+author: Amy King-Henry
+datemodified: October 29, 2026
+format: html
+editor: visual
+---
+
+# Oaks Exploratory Data Analysis
+
+For your final project analysis, you have been placed into groups, within which you can collaborate and help each other. Within your group, you will divide up the different data that is available to ask questions. You are required to address TWO questions each.
+
+1.  An ANOVA/GLM question that addresses the impact of the experimental treatments on a measured variable (SPAD, stomatal conductance, or height) in one of the two plant species.
+2.  A question of your choice that analyzes one of the abiotic variables (soil moisture, slope, aspect, etc.), past year data, or an interaction within the experiment.
+
+The following worksheet will guide you through developing your research questions, hypotheses, and analysis approach.
+
+### Load your packages
+
+```{r}
+library(tidyverse)
+library(readxl)
+```
+
+### Import all the data
+
+```{r}
+Height_Data_Raw <- 
+  read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
+             sheet = "Seedling Heights")
+
+Moist_Data_Raw <- 
+  read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
+             sheet = "Soil Moisture")
+
+SPAD_Data_Raw <- 
+  read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
+             sheet = "SPAD", 
+             na = "NA")
+```
+
+**Amy gives the gift of importing the LICOR objects for you:**
+
+```{r}
+LICOR_Data_Raw_NAMES <- 
+  read_excel("Oak Data Entry MCRS Field Trip.xlsx",              
+             sheet = "LICOR", 
+             n_max = 3, 
+             col_names = FALSE, 
+             col_types = "text") |> 
+  summarise(across(.fns = paste, collapse = "_")) |> 
+  unlist() |> 
+  unname()
+
+LICOR_Data_Raw <- 
+  read_excel("Oak Data Entry MCRS Field Trip.xlsx",  
+             sheet = "LICOR", 
+             skip = 3, 
+             col_names = LICOR_Data_Raw_NAMES,
+             col_types = "text")
+
+
+ALL_Licor_NAMES <- 
+  read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
+             sheet = "ALL_Licor_Ignore", 
+             n_max = 3, 
+             col_names = FALSE, 
+             col_types = "text") |> 
+  summarise(across(.fns = paste, collapse = "_")) |> 
+  unlist() |> 
+  unname()
+
+ALL_Licor <- 
+  read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
+             sheet = "ALL_Licor_Ignore", 
+             skip = 3, 
+             col_names = ALL_Licor_NAMES, 
+             col_types = "text")
+
+LICOR_Data_Raw <- full_join(LICOR_Data_Raw, ALL_Licor)
+```
+
+## Exploratory Data Analysis:
+
+Before you can analyze your specific questions, you need to clean up and get a sense of the data. Exploratory Data Analysis has the following goals:
+
+1.  **Generate questions about your data.**
+
+    1.  [This is not just about your research questions!]{.underline} Questions might include: how many samples are there for each treatment? Why is there a weird outlier in that one variable? Why won't this variable plot?
+
+    2.  More interesting questions might include: Is there a relationship between these variables? Why is there a pattern where one is higher in only that variable?
+
+2.  **Search for answers by visualizing, transforming, and modelling your data.**
+
+    1.  You can identify problems (like outliers or NA values) by plotting data, or transforming and manipulating it. Answers might include: That outlier was entered incorrectly from the original datasheets, OR it keyed to the wrong species; This variable won't plot because R originally read it in as a character instead of a number (and some lines had words entered instead of NA). You can use these answers to
+
+    2.  Visualizing = plotting, transforming = calculating new variables, log transformations, etc. and modelling = fitting linear models/ANOVA tests to the data.
+
+3.  **Use what you learn to refine your questions and/or generate new questions.**
+
+    1.  Let this lead you! Maybe you find a relationship between two variables. Does that mean there is also a relationship with a third variable? Check it out! Today is about looking at EVERYTHING, not just your specific research question.
+
+## Data Cleaning
+
+### How to Examine and Clean Data
+
+In this section we will look at and clean up each of the data sets you identified that you would like to analyze in your research questions. What to look for when data cleaning:
+
+1.  Dimensions
+    1.  Does the data have the right number of rows? Are there blank rows of NAs at the bottom that need to be removed?
+        - `nrow()`, `dim()`, `glimpse()` to view counts of rows
+    2.  Do you have all the columns you need? Do you need to bring in additional information for context?
+        - `ncol()`, `str()`, `names()`, `glimpse()` to view column numbers and names
+        - `full_join()`, `inner_join()`, `left_join()` etc. to merge with other data based on matching columns
+        - Are there columns you won't use that you'd like to exclude for simplicity using `select()`
+2.  Column names
+    1.  Are your column names tidy (i.e., have no punctuation or spaces, consistent capitals)?
+        - `rename()` to fix column names
+        - Recommendation: rename some of those messy LICOR columns to more useful and memorable ones!
+3.  Data types
+    1.  Are your columns in the correct format?
+        - `typeof(data$variable)` or `glimpse()` to check column data type
+        - `mutate(variable = as.numeric())` to convert to numeric
+        - `mutate(variable = as.character())` to convert to string/word
+        - `mutate(variable = factor())` to convert to factor
+    2.  Do the values in your columns all match the format you want? (e.g., are there characters in a numeric column?
+        - `unique(data$variable)` to see all unique values in that column
+        - `mutate(variable = case_when([see Data Wrangling demo]))` to repair
+    3.  Are there any cells that contain two kinds of information and may need to be separated? (e.g. Tag_Num that also includes sapling A/B or A1, A2, or A3)
+        - `separate()` to create two new columns by splitting the data based on a delimiter
+4.  Irregular Values
+    1.  Do all the values make sense for your data set (e.g., outliers)
+        1.  `summary(df$variable)` gives the min & max and other values to see IF there is a weird value
+        2.  `which(df$variable == 102.0)` gives the ROW NUMBER of any rows that have that value
+        3.  If you find something weird, check it against the original data sheets, correct or remove with `filter()` if appropriate.
+        4.  View your data with histograms.
+
+### ANOVA dataset
+
+You may be either examining `SPAD_Data_Raw`, `Height_Data_Raw`, `LICOR_Data_Raw`, or `Moist_Data_Raw` for your ANOVA question. Examine your data set using the diagnostic functions I've given you above in the How to Examine and Clean Data section.
+
+```{r}
+view(SPAD_Data_Raw)
+```
+
+In this next chunk, generate a cleaned data set following the example below. As you examine your raw data and find things to fix, add a #Note to create a list of things to fix up. You can then use pipes and write code to fix each thing in your checklist. This is also where if you identified `filters` or data computations in your Hypothesis worksheet (e.g., choose only one species), you can apply those.
+
+One specific thing you may need to do is JOIN two of the datasets, using common columns to match observations to each other. In the field, we recorded `Tag_Num`, `Seedling_AB_etc`, and `Block` as unique observations to identify trees across multiple datasets. Trees which were measured in multiple ways can be used to run a regression analysis.
+
+Read about joins here: <https://r4ds.hadley.nz/joins>
+
+Check out the illustrative animations on this page: <https://github.com/gadenbuie/tidyexplain?tab=readme-ov-file#mutating-joins>
+
+```{r}
+dimensions_SPAD <- SPAD_Data_Raw |> 
+  filter(if_any(everything(), ~ !is.na(.)))
+
+dimensions_SPAD
+
+
+data_type_SPAD <- dimensions_SPAD |> 
+  separate(col = "Tag_Num", sep = 3, into = c("Tag_Num", "Sapling")) 
+data_type_SPAD
+
+
+mean_SPAD <- data_type_SPAD |> 
+  mutate(Mean_SPAD = rowMeans(pick(Leaf1, Leaf2, Leaf3, Leaf4, Leaf5, Leaf6), na.rm = TRUE))
+mean_SPAD
+
+
+Alive_SPAD <- mean_SPAD |> 
+  select(Date, Team, Block, Treatment, Sapling, Dead_Alive, Mean_SPAD) |> 
+  filter(Dead_Alive == "Alive")
+Alive_SPAD
+
+
+clean_SPAD <- Alive_SPAD |> 
+  filter(Mean_SPAD >= 10)
+clean_SPAD
+
+
+clean_SPAD |> ggplot() +
+  aes(x = Treatment, y = Mean_SPAD) +
+  geom_point()
+  
+  # use notes like this to create a checklist of the things that need to be fixed, then you can fill in code between each line as you fix them. 
+
+  # Thing to fix #2
+
+  # Thing to fix #3
+```
+
+### Regression dataset
+
+Repeat the steps you took for your ANOVA data for your second data set of choice/
+
+```{r}
+# View data set
+```
+
+```{r}
+Data <- _Raw |> 
+   
+  #Things to Fix
+```
+
+## Exploratory Data Analysis
+
+Now that your data is (probably, mostly!) clean, it is time to explore your data! Feel free to explore not just the variables/data set relevant to your research question, but to explore variables your teammates are examining as well. Use this space to generate more questions, identify if there are more things to fix in your data cleaning, etc.
+
+Not sure where to start?
+
+- Make a histogram of each variable and write down your observations
+
+- Plot variables against each other to explore relationships (boxplots and scatterplots are a good starting point)
+
+- Use facet_grid to explore different groupings of data
+
+**There are no wrong answers! If you make 3+ graphs and show you're thinking critically about them, you will get full credit for this assignment.**
+
+Go for it!
+
+```{r}
+
+```
