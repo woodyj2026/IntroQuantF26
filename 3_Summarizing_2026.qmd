@@ -10,15 +10,15 @@ editor: visual
 
 ### Components of a boxplot
 
-- The middle line is the **median**.
+-   The middle line is the **median**.
 
-- The box is the **interquartile range, or IQR** - the bounds of the second and third quartiles.
+-   The box is the **interquartile range, or IQR** - the bounds of the second and third quartiles.
 
-- The upper whisker extends from the hinge to the **largest value no further than 1.5 \* IQR** from the hinge (where IQR is the inter-quartile range, or distance between the first and third quartiles).
+-   The upper whisker extends from the hinge to the **largest value no further than 1.5 \* IQR** from the hinge (where IQR is the inter-quartile range, or distance between the first and third quartiles).
 
-- The lower whisker extends from the hinge to the **smallest value at most 1.5 \* IQR** of the hinge.
+-   The lower whisker extends from the hinge to the **smallest value at most 1.5 \* IQR** of the hinge.
 
-- Data beyond the end of the whiskers are called "outlying" points and are plotted individually.
+-   Data beyond the end of the whiskers are called "outlying" points and are plotted individually.
 
 These are NOT mean and standard deviation!
 
@@ -95,23 +95,23 @@ CC_sp19 %>%
 
 What observations can we make about the distribution of this data?
 
-- Is it symmetrical or skewed?
+-   Is it symmetrical or skewed?
 
-- Are there many outliers?
+-   Are there many outliers?
 
-- Is there missing data?
+-   Is there missing data?
 
-- Is it unimodal, i.e., is there only one peak where there are the most observations, or are there multiple peaks (bimodal, etc.)?
+-   Is it unimodal, i.e., is there only one peak where there are the most observations, or are there multiple peaks (bimodal, etc.)?
 
-- What are our expectations for what size demographics should look like for populations of:
+-   What are our expectations for what size demographics should look like for populations of:
 
-  - long-lived vs. short-lived animals
+    -   long-lived vs. short-lived animals
 
-  - r vs. K-selected
+    -   r vs. K-selected
 
-  - growing vs. shrinking populations?
+    -   growing vs. shrinking populations?
 
-- What factors apart from the population itself may have influenced this pattern? Let's look at the histograms for all the dates and sites:
+-   What factors apart from the population itself may have influenced this pattern? Let's look at the histograms for all the dates and sites:
 
 ```{r many histograms}
 CCdata_tidy %>%
