@@ -196,12 +196,42 @@ Repeat the steps you took for your ANOVA data for your second data set of choice
 
 ```{r}
 # View data set
+view(Moist_Data_Raw)
 ```
 
 ```{r}
-Data <- _Raw |> 
-   
-  #Things to Fix
+dimensions_Moist <- Moist_Data_Raw |> 
+  filter(if_any(everything(), ~ !is.na(.)))
+
+dimensions_Moist
+
+
+data_type_Moist <- dimensions_Moist |> 
+  mutate(across(c(VWC1_perc, VWC2_perc, VWC3_perc), as.numeric))
+
+data_type_Moist
+  
+
+mean_Moist <- data_type_Moist |> 
+  mutate(Mean_Moist = rowMeans(pick(VWC1_perc, VWC2_perc, VWC3_perc), na.rm = TRUE))
+mean_Moist
+
+
+clean_Moist <- mean_Moist |> 
+  select(Date, Team, Block, Treatment, Mean_Moist)
+
+clean_Moist
+
+
+clean_Moist |> ggplot() +
+  aes(x = Treatment, y = Mean_Moist) +
+  geom_boxplot()
+
+
+joined_data <- full_join(clean_SPAD, clean_Moist, by = c("Block", "Treatment"), relationship = "many-to-many")
+
+joined_data
+
 ```
 
 ## Exploratory Data Analysis
