@@ -231,6 +231,7 @@ clean_Moist |> ggplot() +
 joined_data <- full_join(clean_SPAD, clean_Moist, by = c("Block", "Treatment"), relationship = "many-to-many")
 
 joined_data
+joined_data
 
 ```
 
