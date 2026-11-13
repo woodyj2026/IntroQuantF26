@@ -231,7 +231,6 @@ clean_Moist |> ggplot() +
 joined_data <- full_join(clean_SPAD, clean_Moist, by = c("Block", "Treatment"), relationship = "many-to-many")
 
 joined_data
-joined_data
 
 ```
 
@@ -252,5 +251,19 @@ Not sure where to start?
 Go for it!
 
 ```{r}
+ANOVA_box <- ggplot(clean_SPAD) +
+  geom_boxplot() +
+  aes(x = Treatment, y = Mean_SPAD)
+ANOVA_box
 
+moist_box <- ggplot(clean_Moist) +
+  geom_boxplot() +
+  aes(x = Treatment, y = Mean_Moist) 
+moist_box
+
+regression_point <- ggplot(joined_data) +
+  geom_point(x = Mean_Moist, y = Mean_SPAD) +
+  geom_smooth()
+regression_point
+  
 ```
