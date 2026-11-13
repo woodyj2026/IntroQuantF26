@@ -108,26 +108,26 @@ In this section we will look at and clean up each of the data sets you identifie
 
 1.  Dimensions
     1.  Does the data have the right number of rows? Are there blank rows of NAs at the bottom that need to be removed?
-        - `nrow()`, `dim()`, `glimpse()` to view counts of rows
+        -   `nrow()`, `dim()`, `glimpse()` to view counts of rows
     2.  Do you have all the columns you need? Do you need to bring in additional information for context?
-        - `ncol()`, `str()`, `names()`, `glimpse()` to view column numbers and names
-        - `full_join()`, `inner_join()`, `left_join()` etc. to merge with other data based on matching columns
-        - Are there columns you won't use that you'd like to exclude for simplicity using `select()`
+        -   `ncol()`, `str()`, `names()`, `glimpse()` to view column numbers and names
+        -   `full_join()`, `inner_join()`, `left_join()` etc. to merge with other data based on matching columns
+        -   Are there columns you won't use that you'd like to exclude for simplicity using `select()`
 2.  Column names
     1.  Are your column names tidy (i.e., have no punctuation or spaces, consistent capitals)?
-        - `rename()` to fix column names
-        - Recommendation: rename some of those messy LICOR columns to more useful and memorable ones!
+        -   `rename()` to fix column names
+        -   Recommendation: rename some of those messy LICOR columns to more useful and memorable ones!
 3.  Data types
     1.  Are your columns in the correct format?
-        - `typeof(data$variable)` or `glimpse()` to check column data type
-        - `mutate(variable = as.numeric())` to convert to numeric
-        - `mutate(variable = as.character())` to convert to string/word
-        - `mutate(variable = factor())` to convert to factor
+        -   `typeof(data$variable)` or `glimpse()` to check column data type
+        -   `mutate(variable = as.numeric())` to convert to numeric
+        -   `mutate(variable = as.character())` to convert to string/word
+        -   `mutate(variable = factor())` to convert to factor
     2.  Do the values in your columns all match the format you want? (e.g., are there characters in a numeric column?
-        - `unique(data$variable)` to see all unique values in that column
-        - `mutate(variable = case_when([see Data Wrangling demo]))` to repair
+        -   `unique(data$variable)` to see all unique values in that column
+        -   `mutate(variable = case_when([see Data Wrangling demo]))` to repair
     3.  Are there any cells that contain two kinds of information and may need to be separated? (e.g. Tag_Num that also includes sapling A/B or A1, A2, or A3)
-        - `separate()` to create two new columns by splitting the data based on a delimiter
+        -   `separate()` to create two new columns by splitting the data based on a delimiter
 4.  Irregular Values
     1.  Do all the values make sense for your data set (e.g., outliers)
         1.  `summary(df$variable)` gives the min & max and other values to see IF there is a weird value
@@ -240,11 +240,11 @@ Now that your data is (probably, mostly!) clean, it is time to explore your data
 
 Not sure where to start?
 
-- Make a histogram of each variable and write down your observations
+-   Make a histogram of each variable and write down your observations
 
-- Plot variables against each other to explore relationships (boxplots and scatterplots are a good starting point)
+-   Plot variables against each other to explore relationships (boxplots and scatterplots are a good starting point)
 
-- Use facet_grid to explore different groupings of data
+-   Use facet_grid to explore different groupings of data
 
 **There are no wrong answers! If you make 3+ graphs and show you're thinking critically about them, you will get full credit for this assignment.**
 
